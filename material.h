@@ -42,6 +42,42 @@ class lambertian : public material {
         shared_ptr<texture> albedo;
 };
 
+class nayer : public material {
+    public:
+        nayer(const color& a) : albedo(make_shared<solid_color>(a)) {}
+        nayer(shared_ptr<texture> a) : albedo(a) {}
+
+        virtual bool scatter(
+            const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
+        ) const override {
+            auto scatter_direction = rec.normal + random_unit_vector();
+
+            // Catch degenerate scatter direction
+            if (scatter_direction.near_zero())
+                scatter_direction = rec.normal;
+
+            scattered = ray(rec.p, scatter_direction, r_in.time());
+
+            auto rho = 0.25;
+            auto sigma = pi / 2;
+            auto A = 1 / (pi + (pi/2 - 2/3)*sigma);
+            auto B = sigma / (pi + (pi/2 - 2/3)*sigma);
+
+            auto s = dot(r_in.direction(), scattered.direction()) - dot(rec.normal, r_in.direction())*dot(rec.normal, r_in.direction());
+            auto max =  dot(rec.normal, r_in.direction()) < dot(rec.normal, r_in.direction()) ? dot(rec.normal, r_in.direction()) : dot(rec.normal, r_in.direction());
+            auto t = s <= 0 ? 1 : max;
+
+            auto ON = rho * dot(rec.normal, r_in.direction())*(A+B*(s/t));
+
+            attenuation = 0.5 * ON * albedo->value(rec.u, rec.v, rec.p);
+            return true;
+        }
+
+    public:
+        shared_ptr<texture> albedo;
+};
+
+
 class metal : public material {
     public:
         metal(const color& a, double f) : albedo(a), fuzz(f < 1 ? f : 1) {}

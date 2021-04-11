@@ -101,13 +101,18 @@ hittable_list cornell_box() {
 hittable_list simple_light() {
     hittable_list objects;
 
-    auto pertext = make_shared<noise_texture>(4);
-    shared_ptr<hittable> sphere1 = make_shared<sphere>(point3(0,-1000,0), 1000, make_shared<lambertian>(pertext));
+    auto pertext = make_shared<noise_texture>(10);
+    shared_ptr<hittable> sphere1 = make_shared<sphere>(point3(0,100,0), 100, make_shared<lambertian>(pertext));
     objects.add(make_shared<constant_medium>(sphere1, 0.01, pertext));
-    objects.add(make_shared<sphere>(point3(0,2,0), 2, make_shared<lambertian>(pertext)));
+    objects.add(make_shared<sphere>(point3(0,-1000,0), 1000, make_shared<lambertian>(pertext)));
 
-    auto difflight = make_shared<diffuse_light>(color(4,4,4));
-    objects.add(make_shared<xy_rect>(3, 5, 1, 3, -2, difflight));
+    objects.add(make_shared<sphere>(point3(0,2,0), 2, make_shared<dielectric>(1.5)));
+    shared_ptr<hittable> boundary = make_shared<sphere>(point3(0,2,0), 1.99, make_shared<lambertian>(pertext)); // 0.94 0.5 0.5
+    objects.add(make_shared<constant_medium>(boundary, .2, pertext));
+
+
+    auto difflight = make_shared<diffuse_light>(color(5,5,5));
+    objects.add(make_shared<xy_rect>(3, 7, 1, 5, -5, difflight));
 
     return objects;
 }
@@ -127,8 +132,12 @@ hittable_list two_spheres() {
 
     auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1), color(0.9, 0.9, 0.9));
 
-    objects.add(make_shared<sphere>(point3(0, -10, 0), 10, make_shared<lambertian>(checker)));
-    objects.add(make_shared<sphere>(point3(0, 10, 0), 10, make_shared<lambertian>(checker)));
+    auto moon_texture = make_shared<image_texture>("moon.jpg");
+    auto moon_surface = make_shared<nayer>(moon_texture);
+
+    objects.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<nayer>(checker)));
+    objects.add(make_shared<sphere>(point3(1, 1, 0), 1, moon_surface));
+    objects.add(make_shared<sphere>(point3(-1, 1, 0), 1, make_shared<lambertian>(color(0.5, 0.5, 0.5))));
 
     return objects;
 }
@@ -246,24 +255,23 @@ hittable_list final_scene() {
     return objects;
 }
 
-
 int main() {
     // image configurations
-    auto aspect_ratio = 1.0;
+    auto aspect_ratio = 16.0/9.0;
     int image_width = 600;
     int image_height = static_cast<int>(image_width / aspect_ratio);
-    int samples_per_pixel = 100;
+    int samples_per_pixel = 50;
     int max_depth = 50;
 
     hittable_list world;
 
     point3 lookfrom;
     point3 lookat;
-    auto vfov = 40.0;
+    auto vfov = 45.0;
     auto aperture = 0.0;
     color background(0,0,0);
 
-   switch (4) {
+   switch (2) {
         case 1:
             world = random_scene();
             background = color(0.70, 0.80, 1.00);
@@ -276,8 +284,8 @@ int main() {
         case 2:
             world = two_spheres();
             background = color(0.70, 0.80, 1.00);
-            lookfrom = point3(13,2,3);
-            lookat = point3(0,0,0);
+            lookfrom = point3(0,1,-10);
+            lookat = point3(0,1,0);
             vfov = 20.0;
             break;
 
@@ -291,7 +299,7 @@ int main() {
 
         case 4:
             world = simple_light();
-            samples_per_pixel = 400;
+            samples_per_pixel = 5000;
             lookfrom = point3(26,3,6);
             lookat = point3(0,2,0);
             vfov = 20.0;
@@ -350,7 +358,6 @@ int main() {
             write_color(pixels, pixel_color, index, samples_per_pixel);
         } // iterate over width
     } // iterate over height
-
 
     // Write Image Using stbi_image_write
     stbi_write_jpg("out.jpg", image_width, image_height, NUM_CHANNELS, pixels, 100);
