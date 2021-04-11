@@ -5,13 +5,20 @@
 
 #include <iostream>
 
-void write_color(uint8_t * buffer, color pixel_color, int &index) {
-    int ir = int(255.99f * pixel_color.x());
-    int ig = int(255.99f * pixel_color.y());
-    int ib = int(255.99f * pixel_color.z());
-    buffer[index++] = ir;
-    buffer[index++] = ig;
-    buffer[index++] = ib;
+void write_color(uint8_t * buffer, color pixel_color, int &index, int samples_per_pixel) {
+    auto r = pixel_color.x();
+    auto g = pixel_color.y();
+    auto b = pixel_color.z();
+
+    // Divide the color by the number of samples.
+    auto scale = 1.0 / samples_per_pixel;
+    r = sqrt(scale * r);
+    g = sqrt(scale * g);
+    b = sqrt(scale * b);
+
+    buffer[index++] = static_cast<int>(256 * clamp(r, 0.0, 0.999));
+    buffer[index++] = static_cast<int>(256 * clamp(g, 0.0, 0.999));
+    buffer[index++] = static_cast<int>(256 * clamp(b, 0.0, 0.999));
 }
 
 #endif
