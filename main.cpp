@@ -13,6 +13,7 @@
 #include "aarect.h"
 #include "box.h"
 #include "constant_medium.h"
+#include "turbulent_medium.h"
 #include "moving_sphere.h"
 
 
@@ -61,7 +62,7 @@ hittable_list moon() {
 
 
     auto moon_texture = make_shared<image_texture>("moon.jpg");
-    auto moon_surface = make_shared<lambertian>(moon_texture);
+    auto moon_surface = make_shared<nayer>(moon_texture);
     objects.add(make_shared<sphere>(point3(0,0,0), 2, moon_surface));
 
     return objects;
@@ -92,7 +93,7 @@ hittable_list cornell_box() {
     box2 = make_shared<rotate_y>(box2, -18);
     box2 = make_shared<translate>(box2, vec3(130,0,65));
 
-    objects.add(make_shared<constant_medium>(box1, 0.01, color(0,0,0)));
+    objects.add(make_shared<turbulent_medium>(box1, 0.01, color(0,0,0)));
     objects.add(make_shared<constant_medium>(box2, 0.01, color(1,1,1)));
 
     return objects;
@@ -114,6 +115,14 @@ hittable_list simple_light() {
     auto difflight = make_shared<diffuse_light>(color(5,5,5));
     objects.add(make_shared<xy_rect>(3, 7, 1, 5, -5, difflight));
 
+    return objects;
+}
+
+hittable_list clouds() {
+    hittable_list objects;
+
+    shared_ptr<hittable> boundary = make_shared<box>(point3(0, 0, 0), point3(165, 330, 165), make_shared<lambertian>(color(.73, .73, .73)));
+    objects.add(make_shared<turbulent_medium>(boundary, .2, color(.73, .9, .73)));
     return objects;
 }
 
@@ -258,7 +267,7 @@ hittable_list final_scene() {
 int main() {
     // image configurations
     auto aspect_ratio = 16.0/9.0;
-    int image_width = 600;
+    int image_width = 1920;
     int image_height = static_cast<int>(image_width / aspect_ratio);
     int samples_per_pixel = 50;
     int max_depth = 50;
@@ -271,7 +280,7 @@ int main() {
     auto aperture = 0.0;
     color background(0,0,0);
 
-   switch (2) {
+   switch (5) {
         case 1:
             world = random_scene();
             background = color(0.70, 0.80, 1.00);
@@ -299,14 +308,14 @@ int main() {
 
         case 4:
             world = simple_light();
-            samples_per_pixel = 5000;
+            samples_per_pixel = 50;
             lookfrom = point3(26,3,6);
             lookat = point3(0,2,0);
             vfov = 20.0;
             break;
         case 5:
             world = moon();
-            samples_per_pixel = 1000;
+            samples_per_pixel = 5000;
             lookfrom = point3(13,2,3);
             lookat = point3(0,0,0);
             vfov = 20.0;
@@ -315,12 +324,11 @@ int main() {
             world = cornell_box();
             aspect_ratio = 1.0;
             image_width = 600;
-            samples_per_pixel = 50;
+            samples_per_pixel = 250;
             lookfrom = point3(278, 278, -800);
             lookat = point3(278, 278, 0);
             vfov = 40.0;
             break;
-        default:
         case 7:
             world = final_scene();
             aspect_ratio = 1.0;
@@ -330,6 +338,14 @@ int main() {
             lookfrom = point3(478, 278, -600);
             lookat = point3(278, 278, 0);
             vfov = 40.0;
+            break;
+        default:
+        case 8:
+            world = clouds();
+            background = color(0.70, 0.80, 1.00);
+            lookfrom = point3(0,1,-200);
+            lookat = point3(0,1,0);
+            vfov = 45.0;
             break;        
     }
 

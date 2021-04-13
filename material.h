@@ -69,7 +69,7 @@ class nayer : public material {
 
             auto ON = rho * dot(rec.normal, r_in.direction())*(A+B*(s/t));
 
-            attenuation = 0.5 * ON * albedo->value(rec.u, rec.v, rec.p);
+            attenuation = 0.05 * ON * albedo->value(rec.u, rec.v, rec.p);
             return true;
         }
 
