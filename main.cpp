@@ -118,11 +118,34 @@ hittable_list simple_light() {
     return objects;
 }
 
+hittable_list bubble() {
+    hittable_list objects;
+
+    objects.add(make_shared<sphere>(point3(0,-1000,0), 1000, make_shared<lambertian>(color(.50, .8, 0.23))));
+
+    auto bubbletex = make_shared<bubble_texture>(pi);
+    objects.add(make_shared<sphere>(point3(0,2,0), -1.99, make_shared<dielectric>(1.0, bubbletex)));
+    objects.add(make_shared<sphere>(point3(0,2,0), 2, make_shared<dielectric>(1.0, bubbletex)));
+
+    auto difflight = make_shared<diffuse_light>(color(5,5,5));
+    objects.add(make_shared<xy_rect>(3, 7, 1, 5, -5, difflight));
+    
+    return objects;
+}
+
 hittable_list clouds() {
     hittable_list objects;
 
-    shared_ptr<hittable> boundary = make_shared<box>(point3(0, 0, 0), point3(165, 330, 165), make_shared<lambertian>(color(.73, .73, .73)));
-    objects.add(make_shared<turbulent_medium>(boundary, .2, color(.73, .9, .73)));
+    shared_ptr<hittable> boundary = make_shared<box>(point3(-25, 0, -50), point3(25, 25, -25), make_shared<lambertian>(color(1., 0., 0.)));
+    objects.add(make_shared<turbulent_medium>(boundary, .5, color(1., 1., 1.)));
+
+    objects.add(make_shared<sphere>(point3(0,-1000,0), 1000, make_shared<lambertian>(color(.50, .8, 0.23))));
+    objects.add(make_shared<sphere>(point3(0,2,0), -1.99, make_shared<dielectric>(1.0, color(1.0, 1.0, 1.0))));
+    objects.add(make_shared<sphere>(point3(0,2,0), 2, make_shared<dielectric>(1.0, color(1.0, 1.0, 1.0))));
+
+    //auto difflight = make_shared<diffuse_light>(color(5,5,5));
+    //objects.add(make_shared<xy_rect>(3, 13, 1, 11, -50, difflight));
+    
     return objects;
 }
 
@@ -266,8 +289,8 @@ hittable_list final_scene() {
 
 int main() {
     // image configurations
-    auto aspect_ratio = 16.0/9.0;
-    int image_width = 1920;
+    auto aspect_ratio = 1.0;
+    int image_width = 600;
     int image_height = static_cast<int>(image_width / aspect_ratio);
     int samples_per_pixel = 50;
     int max_depth = 50;
@@ -280,7 +303,7 @@ int main() {
     auto aperture = 0.0;
     color background(0,0,0);
 
-   switch (5) {
+   switch (8) {
         case 1:
             world = random_scene();
             background = color(0.70, 0.80, 1.00);
@@ -307,15 +330,16 @@ int main() {
             break;
 
         case 4:
-            world = simple_light();
-            samples_per_pixel = 50;
+            world = bubble();
+            background = color(0.70, 0.80, 1.00);
+            samples_per_pixel = 250;
             lookfrom = point3(26,3,6);
             lookat = point3(0,2,0);
-            vfov = 20.0;
+            vfov = 10.0;
             break;
         case 5:
             world = moon();
-            samples_per_pixel = 5000;
+            samples_per_pixel = 1000;
             lookfrom = point3(13,2,3);
             lookat = point3(0,0,0);
             vfov = 20.0;
@@ -343,9 +367,10 @@ int main() {
         case 8:
             world = clouds();
             background = color(0.70, 0.80, 1.00);
-            lookfrom = point3(0,1,-200);
-            lookat = point3(0,1,0);
-            vfov = 45.0;
+            samples_per_pixel = 50;
+            lookfrom = point3(26,3,6);
+            lookat = point3(0,2,0);
+            vfov = 10.0;
             break;        
     }
 

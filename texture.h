@@ -67,6 +67,25 @@ class noise_texture : public texture {
         double scale;
 };
 
+class bubble_texture : public texture {
+    public:
+        bubble_texture() {}
+        bubble_texture(double sc) : scale(sc) {}
+
+        virtual color value(double u, double v, const vec3& p) const override {
+            color albedo(1.0, 1.0, 1.0);
+            double r = 1 + sin(500 * albedo.x() * noise.turb(p));
+            double g = 1 + sin(500 * albedo.y() * noise.turb(p));
+            double b = 1 + sin(500 * albedo.z() * noise.turb(p));
+
+            return color(r, g, b);
+        }
+
+    public:
+        perlin noise;
+        double scale;
+};
+
 class image_texture : public texture {
     public:
         const static int bytes_per_pixel = 3;

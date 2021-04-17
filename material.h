@@ -4,6 +4,7 @@
 #include "rtweekend.h"
 #include "hittable.h"
 #include "texture.h"
+#include "perlin.h"
 
 struct hit_record;
 
@@ -59,7 +60,7 @@ class nayer : public material {
             scattered = ray(rec.p, scatter_direction, r_in.time());
 
             auto rho = 0.25;
-            auto sigma = pi / 2;
+            auto sigma = 0.3;
             auto A = 1 / (pi + (pi/2 - 2/3)*sigma);
             auto B = sigma / (pi + (pi/2 - 2/3)*sigma);
 
@@ -98,12 +99,14 @@ class metal : public material {
 
 class dielectric : public material {
     public:
+        dielectric(double index_of_refraction, shared_ptr<texture> a) : ir(index_of_refraction), albedo(a) {}
+        dielectric(double index_of_refraction, const color & a) : ir(index_of_refraction), albedo(make_shared<solid_color>(a)) {}
         dielectric(double index_of_refraction) : ir(index_of_refraction) {}
 
         virtual bool scatter(
             const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
         ) const override {
-            attenuation = color(1.0, 1.0, 1.0);
+            attenuation = albedo->value(rec.u, rec.v, rec.p);
             double refraction_ratio = rec.front_face ? (1.0/ir) : ir;
 
             vec3 unit_direction = unit_vector(r_in.direction());
@@ -123,6 +126,7 @@ class dielectric : public material {
 
     public:
         double ir; // Index of Refraction
+        shared_ptr<texture> albedo;
 
     private:
         static double reflectance(double cosine, double ref_idx) {
@@ -162,6 +166,29 @@ class isotropic : public material {
         ) const override {
             scattered = ray(rec.p, random_in_unit_sphere(), r_in.time());
             attenuation = albedo->value(rec.u, rec.v, rec.p);
+            return true;
+        }
+
+    public:
+        shared_ptr<texture> albedo;
+};
+
+class cloud : public material {
+    public:
+        cloud(color c) : albedo(make_shared<solid_color>(c)) {}
+        cloud(shared_ptr<texture> a) : albedo(a) {}
+
+        virtual bool scatter(
+            const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
+        ) const override {
+            perlin noise;
+            scattered = ray(rec.p, random_in_unit_sphere(), r_in.time());
+            color c_val = albedo->value(rec.u, rec.v, rec.p);
+            double r = c_val.x() * noise.turb(rec.p);
+            double g = c_val.y() * noise.turb(rec.p);
+            double b = c_val.z() * noise.turb(rec.p);
+
+            attenuation = color(r, g, b);
             return true;
         }
 

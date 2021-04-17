@@ -11,9 +11,9 @@
 class turbulent_medium : public hittable {
     public:
         turbulent_medium(shared_ptr<hittable> b, double d, shared_ptr<texture> a)
-            : boundary(b), neg_inv_density(-1/d), phase_function(make_shared<isotropic>(a)) {}
+            : boundary(b), neg_inv_density(-1/d), phase_function(make_shared<cloud>(a)) {}
         turbulent_medium(shared_ptr<hittable> b, double d, color c)
-            : boundary(b), neg_inv_density(-1/d), phase_function(make_shared<isotropic>(c)) {}
+            : boundary(b), neg_inv_density(-1/d), phase_function(make_shared<cloud>(c)) {}
 
         virtual bool hit(
             const ray& r, double t_min, double t_max, hit_record& rec) const override;
@@ -55,7 +55,7 @@ bool turbulent_medium::hit(const ray& r, double t_min, double t_max, hit_record&
 
     const auto ray_length = r.direction().length();
     const auto distance_inside_boundary = (rec2.t - rec1.t) * ray_length;
-    const auto hit_distance = neg_inv_density * noise.turb(r.at(rec.t));
+    const auto hit_distance = neg_inv_density * log(random_double());
 
     if (hit_distance > distance_inside_boundary)
         return false;
