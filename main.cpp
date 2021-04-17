@@ -136,11 +136,11 @@ hittable_list bubble() {
 hittable_list clouds() {
     hittable_list objects;
 
-    shared_ptr<hittable> boundary = make_shared<box>(point3(-25, 0, -50), point3(25, 25, -25), make_shared<lambertian>(color(1., 0., 0.)));
-    objects.add(make_shared<turbulent_medium>(boundary, .5, color(1., 1., 1.)));
+    shared_ptr<hittable> boundary = make_shared<sphere>(point3(0,2,0), 1.99, make_shared<lambertian>(color(1.0, 1.0, 1.0)));
+
+    objects.add(make_shared<turbulent_medium>(boundary, .5, color(1., 0., 0.)));
 
     objects.add(make_shared<sphere>(point3(0,-1000,0), 1000, make_shared<lambertian>(color(.50, .8, 0.23))));
-    objects.add(make_shared<sphere>(point3(0,2,0), -1.99, make_shared<dielectric>(1.0, color(1.0, 1.0, 1.0))));
     objects.add(make_shared<sphere>(point3(0,2,0), 2, make_shared<dielectric>(1.0, color(1.0, 1.0, 1.0))));
 
     //auto difflight = make_shared<diffuse_light>(color(5,5,5));
@@ -367,10 +367,10 @@ int main() {
         case 8:
             world = clouds();
             background = color(0.70, 0.80, 1.00);
-            samples_per_pixel = 50;
+            samples_per_pixel = 100;
             lookfrom = point3(26,3,6);
             lookat = point3(0,2,0);
-            vfov = 10.0;
+            vfov = 20.0;
             break;        
     }
 

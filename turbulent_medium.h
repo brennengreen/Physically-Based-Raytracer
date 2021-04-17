@@ -55,7 +55,7 @@ bool turbulent_medium::hit(const ray& r, double t_min, double t_max, hit_record&
 
     const auto ray_length = r.direction().length();
     const auto distance_inside_boundary = (rec2.t - rec1.t) * ray_length;
-    const auto hit_distance = neg_inv_density * log(random_double());
+    const auto hit_distance = rec.p.x()*(neg_inv_density/(neg_inv_density*neg_inv_density)) * log(random_double()) + noise.turb(rec.p);
 
     if (hit_distance > distance_inside_boundary)
         return false;
