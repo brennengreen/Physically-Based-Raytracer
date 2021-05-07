@@ -318,7 +318,7 @@ int main() {
     shared_ptr<hittable> lights = make_shared<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>());
     aspect_ratio = 1.0;
     image_width = 600;
-    samples_per_pixel = 250;
+    samples_per_pixel = 1000;
     lookfrom = point3(278, 278, -800);
     lookat = point3(278, 278, 0);
     vfov = 40.0;
